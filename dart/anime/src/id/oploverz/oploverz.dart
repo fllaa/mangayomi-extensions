@@ -9,25 +9,28 @@ class OploVerz extends MProvider {
   final Client client = Client(source);
 
   @override
+  String get baseUrl => getPreferenceValue(source.id, "overrideBaseUrl");
+
+  @override
   Future<MPages> getPopular(int page) async {
-    final res = (await client.get(Uri.parse(
-            "${source.baseUrl}/anime-list/page/$page/?order=popular")))
+    final res = (await client
+            .get(Uri.parse("${baseUrl}/anime-list/page/$page/?order=popular")))
         .body;
     return parseAnimeList(res);
   }
 
   @override
   Future<MPages> getLatestUpdates(int page) async {
-    final res = (await client.get(
-            Uri.parse("${source.baseUrl}/anime-list/page/$page/?order=latest")))
+    final res = (await client
+            .get(Uri.parse("${baseUrl}/anime-list/page/$page/?order=latest")))
         .body;
     return parseAnimeList(res);
   }
 
   @override
   Future<MPages> search(String query, int page, FilterList filterList) async {
-    final res = (await client.get(
-            Uri.parse("${source.baseUrl}/anime-list/page/$page/?title=$query")))
+    final res = (await client
+            .get(Uri.parse("${baseUrl}/anime-list/page/$page/?title=$query")))
         .body;
     return parseAnimeList(res);
   }
@@ -80,17 +83,15 @@ class OploVerz extends MProvider {
             '//*[@id="server"]/ul/li/div[contains(@id,"player-option")]/@data-type')
         .first;
 
-    final ress = (await client.post(
-            Uri.parse("${source.baseUrl}/wp-admin/admin-ajax.php"),
-            headers: {
-          "_": "_"
-        },
-            body: {
-          "action": "player_ajax",
-          "post": dataPost,
-          "nume": dataNume,
-          "type": dataType
-        }))
+    final ress = (await client
+            .post(Uri.parse("${baseUrl}/wp-admin/admin-ajax.php"), headers: {
+      "_": "_"
+    }, body: {
+      "action": "player_ajax",
+      "post": dataPost,
+      "nume": dataNume,
+      "type": dataType
+    }))
         .body;
 
     final playerLink =
@@ -146,6 +147,19 @@ class OploVerz extends MProvider {
       hasNextPage = !(pages.length == int.parse(pageNumberCurrent.first));
     }
     return MPages(animeList, hasNextPage);
+  }
+
+  List<dynamic> getSourcePreferences() {
+    return [
+      EditTextPreference(
+          key: "overrideBaseUrl",
+          title: "Override BaseUrl",
+          summary: "",
+          value: "https://oploverz.my",
+          dialogTitle: "Override BaseUrl",
+          dialogMessage: "",
+          text: "https://oploverz.my")
+    ];
   }
 }
 
